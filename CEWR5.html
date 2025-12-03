@@ -1,0 +1,752 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CEWR3 - Gulliver Editorial (Cinematic)</title>
+    
+    <!-- Fonts: Playfair Display (Editorial) + Manrope (Modern UI) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600;800&family=Playfair+Display:ital,wght@0,400;0,600;0,900;1,400;1,900&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* =========================================
+           DESIGN TOKENS & RESET
+           ========================================= */
+        :root {
+            /* GULLIVER BRAND PALETTE - STRICT */
+            --brand-blue: #003057;       
+            --brand-blue-dark: #002240;  
+            --brand-blue-light: #004b87; 
+            
+            --brand-gray: #707271;       
+            --brand-silver: #d1d5db;     
+            --brand-white: #ffffff;
+            
+            --bg-dark: var(--brand-blue);
+            --bg-card: rgba(255, 255, 255, 0.03);
+            
+            --text-main: #ffffff;
+            --text-muted: rgba(255, 255, 255, 0.7);
+            
+            /* Accents */
+            --accent-primary: var(--brand-silver);
+            --accent-highlight: #38bdf8; 
+            --accent-red: #ef4444;       
+            --accent-green: #10b981;
+            --accent-pop: #fbbf24; /* Yellow Pop for Progress Bar */     
+            
+            --font-serif: 'Playfair Display', serif;
+            --font-sans: 'Manrope', sans-serif;
+            
+            --ease-out: cubic-bezier(0.215, 0.61, 0.355, 1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--brand-blue);
+            background: radial-gradient(circle at top right, var(--brand-blue-light), var(--brand-blue));
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* =========================================
+           TYPOGRAPHY "EDITORIAL"
+           ========================================= */
+        h1, h2, h3 { font-family: var(--font-serif); font-weight: 900; letter-spacing: -0.03em; }
+        
+        .display-text {
+            font-size: clamp(3rem, 8vw, 7rem);
+            line-height: 0.9;
+            margin-bottom: 1rem;
+        }
+        
+        .display-italic { 
+            font-style: italic; 
+            font-weight: 400; 
+            color: var(--brand-silver);
+            opacity: 0.9;
+        }
+
+        .label {
+            font-family: var(--font-sans);
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--brand-silver);
+            margin-bottom: 1rem;
+            display: block;
+            opacity: 0.8;
+        }
+
+        p { line-height: 1.7; font-size: 1.1rem; color: var(--text-muted); max-width: 65ch; }
+
+        /* =========================================
+           LAYOUT ENGINE
+           ========================================= */
+        .deck {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            perspective: 1000px;
+        }
+
+        .slide {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: clamp(2rem, 5vw, 5rem);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(20px) scale(0.98);
+            transition: all 0.8s var(--ease-out);
+            z-index: 1;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+            z-index: 10;
+        }
+
+        /* Cinematic Background Utility */
+        .cinematic-bg {
+            background-blend-mode: multiply; 
+        }
+
+        /* Split Layout */
+        .layout-split {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr; 
+            gap: 3rem; 
+            align-items: center;
+            height: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .layout-split::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 20%;
+            bottom: 20%;
+            width: 1px;
+            background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.1), transparent);
+            transform: translateX(-50%);
+        }
+
+        @media (max-width: 900px) { 
+            .layout-split { 
+                grid-template-columns: 1fr; 
+                align-content: center; 
+                gap: 2rem; 
+            } 
+            .layout-split::before { display: none; }
+        }
+
+        .layout-hero { text-align: center; align-items: center; }
+        
+        .layout-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            width: 100%;
+            margin-top: 2rem;
+        }
+
+        .scroll-area {
+            overflow-y: auto;
+            max-height: 70vh;
+            padding: 1rem;
+            scrollbar-width: thin;
+            scrollbar-color: var(--brand-silver) rgba(255,255,255,0.1);
+        }
+
+        /* =========================================
+           ANIMATION STAGGER
+           ========================================= */
+        .stagger-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s var(--ease-out);
+        }
+
+        .slide.active .stagger-in {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .slide.active .d-1 { transition-delay: 0.1s; }
+        .slide.active .d-2 { transition-delay: 0.2s; }
+        .slide.active .d-3 { transition-delay: 0.3s; }
+        .slide.active .d-4 { transition-delay: 0.4s; }
+        .slide.active .d-5 { transition-delay: 0.5s; }
+
+        /* =========================================
+           INTERACTIVE COMPONENTS
+           ========================================= */
+        
+        .glass-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            backdrop-filter: blur(12px);
+            padding: 2rem;
+            border-radius: 2px; 
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease, border-color 0.3s ease, background 0.3s ease;
+        }
+        .glass-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--brand-silver);
+            background: rgba(255,255,255,0.08);
+        }
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--brand-silver), transparent);
+            opacity: 0.4;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .checklist-item:hover { background: rgba(255,255,255,0.05); }
+        .check-box {
+            width: 24px; height: 24px;
+            border: 1px solid var(--brand-silver);
+            display: grid; place-items: center;
+            transition: all 0.3s;
+            border-radius: 50%;
+            opacity: 0.5;
+        }
+        .checklist-item.checked .check-box {
+            background: var(--accent-green);
+            border-color: var(--accent-green);
+            opacity: 1;
+        }
+        .checklist-item.checked span {
+            text-decoration: line-through;
+            color: var(--text-muted);
+            opacity: 0.5;
+        }
+        .check-icon { transform: scale(0); transition: transform 0.2s; color: white; font-size: 0.8rem; }
+        .checklist-item.checked .check-icon { transform: scale(1); }
+
+        .litmus-container {
+            display: flex;
+            gap: 0;
+            margin-top: 2rem;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .litmus-opt {
+            flex: 1;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: all 0.3s;
+            background: rgba(0,0,0,0.2);
+        }
+        .litmus-opt:hover { background: rgba(255,255,255,0.05); opacity: 1; }
+        .litmus-opt.active {
+            opacity: 1;
+            background: var(--brand-silver);
+            color: var(--brand-blue);
+            font-weight: bold;
+        }
+        .litmus-content {
+            display: none;
+            padding: 2rem;
+            background: rgba(0,0,0,0.2);
+            margin-top: 1rem;
+            border-left: 4px solid var(--brand-silver);
+            animation: fadeIn 0.5s ease;
+        }
+        .litmus-content.show { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .controls {
+            position: fixed;
+            bottom: 2rem;
+            right: 3rem;
+            display: flex;
+            gap: 1rem;
+            z-index: 100;
+        }
+        .btn-nav {
+            width: 60px; height: 60px;
+            border: 1px solid rgba(255,255,255,0.15);
+            background: rgba(0,30,60, 0.8); 
+            backdrop-filter: blur(5px);
+            color: white;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: grid; place-items: center;
+        }
+        .btn-nav:hover { 
+            background: var(--brand-silver); 
+            border-color: var(--brand-silver); 
+            color: var(--brand-blue); 
+            transform: scale(1.1); 
+        }
+
+        /* NEW: Progress Bar with Yellow Pop */
+        .progress-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            height: 6px;
+            background: var(--accent-pop); /* Updated to yellow */
+            width: 0%;
+            transition: width 0.5s var(--ease-out);
+            z-index: 200;
+            box-shadow: 0 0 15px rgba(251, 191, 36, 0.4); /* Yellow glow */
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="progress-bar" id="progress-bar"></div>
+
+<div class="deck">
+
+    <!-- SLIDE 1: HERO (Cinematic) -->
+    <div class="slide layout-hero active cinematic-bg" 
+         style="background-image: url('https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1600&q=80'); background-color: rgba(0,48,87,0.85);">
+        <div class="stagger-in d-1 label">Gulliver Prep · College Counseling<br>David Tran</div>
+        <h1 class="stagger-in d-2 display-text">Discover Your<br><span class="display-italic">True Story</span></h1>
+        <p class="stagger-in d-3">It's not a greatest hits reel. It's not a performance.<br>It's about finding out what you actually want to say.</p>
+    </div>
+
+    <!-- SLIDE 2: THE CHALLENGE -->
+    <div class="slide layout-split">
+        <div class="split-left stagger-in d-1" style="text-align: right;">
+            <span class="label">The Challenge</span>
+            <h2 style="font-size: 4rem; line-height: 1;">"Who<br>Are You?"</h2>
+        </div>
+        <div class="split-right stagger-in d-2">
+            <p class="glass-card" style="border-left: 4px solid var(--brand-silver);">The college essay is different. It doesn't test what you know. <strong>It tests who you are.</strong></p>
+            <p style="margin-top: 1.5rem;">Look at your own life and figure out what you actually want to say about it—in 650 words.</p>
+        </div>
+    </div>
+
+    <!-- SLIDE 3: DISCOVERY PHASE (Fixed Size) -->
+    <div class="slide layout-split">
+        <div class="split-left stagger-in d-1" style="text-align: right;">
+            <span class="label">Part One</span>
+            <h2>The Discovery Phase</h2>
+            <p style="margin-left: auto;">The strongest essays don't start with a prompt. They start here.</p>
+        </div>
+        <div class="split-right stagger-in d-2">
+            <div class="glass-card" style="margin-bottom: 1.5rem;">
+                <h3 style="color: var(--accent-highlight); font-size: 1.25rem;">1. The Life Inventory</h3>
+                <p style="margin-top: 0.5rem;">Set a timer for <strong>15 minutes</strong>. List moments, not achievements.</p>
+            </div>
+            <div class="glass-card">
+                <h3 style="color: var(--accent-highlight); font-size: 1.25rem;">2. The Exploratory Draft</h3>
+                <p style="margin-top: 0.5rem;">Pick one moment. Write for <strong>20 minutes</strong>. Don't edit. Discover.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 4: INTERACTIVE LITMUS TEST -->
+    <div class="slide layout-hero">
+        <span class="label stagger-in d-1">Interactive Tool</span>
+        <h2 class="stagger-in d-2" style="font-size: 3rem;">The Litmus Test</h2>
+        <p class="stagger-in d-3">Click below to see the difference between performing and honesty.</p>
+        
+        <div class="stagger-in d-4" style="width: 100%; max-width: 800px; margin-top: 2rem;">
+            <div class="litmus-container">
+                <div class="litmus-opt active" onclick="setLitmus('perform')">PERFORMING</div>
+                <div class="litmus-opt" onclick="setLitmus('honest')">HONEST</div>
+            </div>
+            <div id="litmus-perform" class="litmus-content show">
+                <h3 style="color: var(--accent-red);">❌ Sounds like a cover letter.</h3>
+                <p style="margin-top: 1rem;">"I utilized my leadership skills to facilitate a synergistic environment..."</p>
+                <p><em>Trying to impress. Robotic. Cold.</em></p>
+            </div>
+            <div id="litmus-honest" class="litmus-content">
+                <h3 style="color: var(--accent-green);">✅ Sounds like a conversation.</h3>
+                <p style="margin-top: 1rem;">"I didn't know what to do, so I just started listening..."</p>
+                <p><em>Vulnerable. Human. Real.</em></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 5: SIX PROMPTS -->
+    <div class="slide">
+        <span class="label stagger-in d-1">The Menu</span>
+        <h2 class="stagger-in d-2" style="margin-bottom: 2rem;">The Six Prompts</h2>
+        <div class="layout-grid stagger-in d-3 scroll-area">
+            <div class="glass-card"><h3>01 Identity</h3><p class="text-sm">Background or talent so meaningful you must share it.</p></div>
+            <div class="glass-card"><h3>02 Obstacles</h3><p class="text-sm">A challenge you faced and how you grew.</p></div>
+            <div class="glass-card"><h3>03 Beliefs</h3><p class="text-sm">A time you questioned or challenged a belief.</p></div>
+            <div class="glass-card"><h3>04 Problems</h3><p class="text-sm">An intellectual challenge you want to solve.</p></div>
+            <div class="glass-card"><h3>05 Growth</h3><p class="text-sm">An accomplishment that sparked realization.</p></div>
+            <div class="glass-card"><h3>06 Engagement</h3><p class="text-sm">A topic that captivates you completely.</p></div>
+        </div>
+    </div>
+
+    <!-- SLIDE 6: FINDING MATERIAL -->
+    <div class="slide layout-hero">
+        <h2 class="stagger-in d-1" style="font-size: 4rem;">Where do you <span class="display-italic" style="color: var(--brand-silver);">slow down?</span></h2>
+        <p class="stagger-in d-2">That is where the meaning is.</p>
+        <div class="layout-grid stagger-in d-3" style="max-width: 900px;">
+            <div class="glass-card"><h3>Surprise</h3><p>What surprises you? That is insight.</p></div>
+            <div class="glass-card"><h3>Recurrence</h3><p>What keeps coming back?</p></div>
+            <div class="glass-card"><h3>Honesty</h3><p>What feels scary to say?</p></div>
+        </div>
+    </div>
+
+    <!-- SLIDE 7: DIVIDER PART 2 (Cinematic) -->
+    <div class="slide layout-hero cinematic-bg" 
+         style="background-image: url('https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=1600&q=80'); background-color: rgba(0,48,87,0.9);">
+        <span class="label" style="color: var(--brand-silver);">Part Two</span>
+        <h1 class="display-text" style="color: white;">Shaping the Narrative</h1>
+    </div>
+
+    <!-- SLIDE 8: THE TRAP -->
+    <div class="slide layout-split">
+        <div class="split-left stagger-in d-1" style="text-align: right;">
+            <span class="label" style="color: var(--accent-red);">The Trap</span>
+            <h2>"And Then..."</h2>
+            <p style="margin-left: auto;">The most boring essays are just lists of events.</p>
+        </div>
+        <div class="split-right stagger-in d-2">
+            <div class="glass-card" style="border-color: var(--accent-red);">
+                <h3>🛑 The Sequence Trap</h3>
+                <p style="font-style: italic; opacity: 0.7; margin: 1rem 0;">"I did this, and then I did that, and then we won..."</p>
+                <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 1rem 0;">
+                <h3>✅ The Thinking</h3>
+                <p>You owe the reader your <strong>analysis</strong>, not just a report of what happened.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 9: SIX MOVES -->
+    <div class="slide">
+        <h2 class="stagger-in d-1">The Writer's Toolkit: 6 Moves</h2>
+        <div class="layout-grid stagger-in d-2 scroll-area">
+            <div class="glass-card"><h3>⏸️ Freeze Frame</h3><p>Stop the clock. Zoom in on sensory details.</p></div>
+            <div class="glass-card"><h3>🔭 Step Back</h3><p>Zoom out to explain context.</p></div>
+            <div class="glass-card"><h3>💭 Internal Monologue</h3><p>What you thought vs. what you said.</p></div>
+            <div class="glass-card"><h3>⏪ Flashback</h3><p>Jump to the past to explain the present.</p></div>
+            <div class="glass-card"><h3>📖 Definition</h3><p>Define a word in your own terms.</p></div>
+            <div class="glass-card"><h3>💡 The Insight</h3><p>The "So What?" moment.</p></div>
+        </div>
+    </div>
+
+    <!-- SLIDE 10: COMMON MISTAKES -->
+    <div class="slide layout-split">
+        <div class="split-left stagger-in d-1" style="text-align: right;">
+            <h2 style="color: var(--accent-red);">6 Deadly Sins</h2>
+            <p style="margin-left: auto;">Avoid these at all costs.</p>
+        </div>
+        <div class="split-right stagger-in d-2 scroll-area">
+            <div class="checklist-item"><span style="color: var(--accent-red);">1. Tragedy Olympics</span> <span style="opacity: 0.5; font-size: 0.8rem;">(Trauma ≠ Insight)</span></div>
+            <div class="checklist-item"><span style="color: var(--accent-red);">2. The Bow</span> <span style="opacity: 0.5; font-size: 0.8rem;">(Life isn't neat)</span></div>
+            <div class="checklist-item"><span style="color: var(--accent-red);">3. Thesaurus Mode</span> <span style="opacity: 0.5; font-size: 0.8rem;">(Don't use "utilize")</span></div>
+            <div class="checklist-item"><span style="color: var(--accent-red);">4. Importance Trap</span> <span style="opacity: 0.5; font-size: 0.8rem;">(Meaning > Impressive)</span></div>
+            <div class="checklist-item"><span style="color: var(--accent-red);">5. Biography Trap</span> <span style="opacity: 0.5; font-size: 0.8rem;">(Too much info)</span></div>
+            <div class="checklist-item"><span style="color: var(--accent-red);">6. Generic Ending</span> <span style="opacity: 0.5; font-size: 0.8rem;">(Be specific)</span></div>
+        </div>
+    </div>
+
+    <!-- SLIDE 11: HONESTY QUOTE (Cinematic) -->
+    <div class="slide layout-hero cinematic-bg" 
+         style="background-image: url('https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&w=1600&q=80'); background-color: rgba(0,48,87,0.9);">
+        <i class="fa-solid fa-quote-left stagger-in d-1" style="font-size: 4rem; color: var(--brand-silver); margin-bottom: 2rem;"></i>
+        <h2 class="stagger-in d-2 display-text" style="font-size: 4rem;">"The hardest part isn't the writing.<br>It's the <span class="display-italic">honesty</span>."</h2>
+    </div>
+
+    <!-- SLIDE 12: DIVIDER PART 3 (Cinematic) -->
+    <div class="slide layout-hero cinematic-bg" 
+         style="background-image: url('https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&w=1600&q=80'); background-color: rgba(0,48,87,0.9);">
+        <span class="label" style="color: var(--brand-silver);">Part Three</span>
+        <h1 class="display-text" style="color: white;">The "Why Us" Essay</h1>
+    </div>
+
+    <!-- SLIDE 13: ASSIGNMENT -->
+    <div class="slide layout-split">
+        <div class="split-left stagger-in d-1" style="text-align: right;">
+            <span class="label">Research</span>
+            <h2>The Assignment</h2>
+            <p style="margin-left: auto;">You are a detective. Collect 4-5 specific details.</p>
+        </div>
+        <div class="split-right stagger-in d-2">
+            <div class="glass-card">
+                <h3>The Key: Specificity</h3>
+                <p>If you can swap the school name and the essay still works, <strong>it is too vague.</strong></p>
+            </div>
+            <div class="layout-grid" style="grid-template-columns: 1fr 1fr;">
+                <div class="glass-card"><h3>⏱️ 20 Min</h3><p>Per school.</p></div>
+                <div class="glass-card"><h3>📄 Output</h3><p>A research doc.</p></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 14: SOURCES OF TRUTH -->
+    <div class="slide">
+        <h2 class="stagger-in d-1 center">4 Sources of Truth</h2>
+        <div class="layout-grid stagger-in d-2">
+            <div class="glass-card">
+                <i class="fa-solid fa-globe" style="font-size: 2rem; margin-bottom: 1rem; color: var(--accent-highlight);"></i>
+                <h3>Websites</h3>
+                <p>Department pages. Faculty research. Labs.</p>
+            </div>
+            <div class="glass-card">
+                <i class="fa-brands fa-instagram" style="font-size: 2rem; margin-bottom: 1rem; color: #db2777;"></i>
+                <h3>Social</h3>
+                <p>Vibe check. Traditions. Student life.</p>
+            </div>
+            <div class="glass-card">
+                <i class="fa-solid fa-newspaper" style="font-size: 2rem; margin-bottom: 1rem; color: white;"></i>
+                <h3>Newspaper</h3>
+                <p>Op-Eds. What do students care about?</p>
+            </div>
+            <div class="glass-card">
+                <i class="fa-solid fa-video" style="font-size: 2rem; margin-bottom: 1rem; color: var(--accent-green);"></i>
+                <h3>Virtual Info</h3>
+                <p>Ask questions. Demonstrate interest.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 15: CHECKLIST INTERACTIVE -->
+    <div class="slide layout-hero">
+        <h2 class="stagger-in d-1">Research Checklist</h2>
+        <p class="stagger-in d-2">Click to mark complete.</p>
+        
+        <div class="stagger-in d-3" style="width: 100%; max-width: 600px; background: var(--bg-card); border-radius: 8px; margin-top: 2rem; border: 1px solid rgba(255,255,255,0.1);">
+            <div class="checklist-item" onclick="toggleCheck(this)"><div class="check-box"><i class="fa-solid fa-check check-icon"></i></div><span>Specific Majors/Programs</span></div>
+            <div class="checklist-item" onclick="toggleCheck(this)"><div class="check-box"><i class="fa-solid fa-check check-icon"></i></div><span>Faculty Members (2-3)</span></div>
+            <div class="checklist-item" onclick="toggleCheck(this)"><div class="check-box"><i class="fa-solid fa-check check-icon"></i></div><span>Specific Courses</span></div>
+            <div class="checklist-item" onclick="toggleCheck(this)"><div class="check-box"><i class="fa-solid fa-check check-icon"></i></div><span>Labs or Centers</span></div>
+            <div class="checklist-item" onclick="toggleCheck(this)"><div class="check-box"><i class="fa-solid fa-check check-icon"></i></div><span>Campus Culture Notes</span></div>
+        </div>
+    </div>
+
+    <!-- SLIDE 16: DIVIDER PART 4 (Cinematic) -->
+    <div class="slide layout-hero cinematic-bg" 
+         style="background-image: url('https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1600&q=80'); background-color: rgba(0,48,87,0.9);">
+        <span class="label" style="color: var(--brand-silver);">Part Four</span>
+        <h1 class="display-text" style="color: white;">Supplementals</h1>
+    </div>
+
+    <!-- SLIDE 17: ESSAY TYPES -->
+    <div class="slide">
+        <h2 class="stagger-in d-1">5 Essay Archetypes</h2>
+        <div class="layout-grid stagger-in d-2 scroll-area">
+            <div class="glass-card"><h3>1. Why Us?</h3><p>Formula: "I've done X, so I'm ready for Y (at your school), to achieve Z."</p></div>
+            <div class="glass-card"><h3>2. Geek Out</h3><p>Academic Passion. Show genuine curiosity.</p></div>
+            <div class="glass-card"><h3>3. Impact</h3><p>Leadership isn't a title. It's a problem you solved.</p></div>
+            <div class="glass-card"><h3>4. Meaningful</h3><p>Evolution: Start -> The Grind -> The Meaning.</p></div>
+            <div class="glass-card"><h3>5. Community</h3><p>What kind of roommate will you be?</p></div>
+        </div>
+    </div>
+
+    <!-- SLIDE 18: WORKFLOW -->
+    <div class="slide layout-hero">
+        <h2 class="stagger-in d-1">The Workflow</h2>
+        <div class="layout-grid stagger-in d-2" style="max-width: 900px;">
+            <div class="glass-card" style="border-top: 4px solid var(--accent-highlight);">
+                <h1>01</h1>
+                <h3>Strategy</h3>
+                <p>15 Min. Outline.</p>
+            </div>
+            <div class="glass-card" style="border-top: 4px solid var(--brand-silver);">
+                <h1>02</h1>
+                <h3>Draft</h3>
+                <p>60 Min. Write messy.</p>
+            </div>
+            <div class="glass-card" style="border-top: 4px solid var(--accent-green);">
+                <h1>03</h1>
+                <h3>Revise</h3>
+                <p>30 Min. Cut fluff.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 19: FINAL POLISH (Cinematic) -->
+    <div class="slide layout-hero cinematic-bg" 
+         style="background-image: url('https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=1600&q=80'); background-color: rgba(0,48,87,0.9);">
+        <span class="label">Part Five</span>
+        <h1 class="display-text">The Final Polish</h1>
+    </div>
+
+    <!-- SLIDE 20: REVISION FRAMEWORK -->
+    <div class="slide">
+        <h2 class="stagger-in d-1">3 Tests</h2>
+        <div class="layout-grid stagger-in d-2">
+            <div class="glass-card">
+                <i class="fa-solid fa-wind" style="font-size: 2rem; color: var(--accent-highlight);"></i>
+                <h3>One-Breath Test</h3>
+                <p>Read aloud. If you gasp, cut it.</p>
+            </div>
+            <div class="glass-card">
+                <i class="fa-solid fa-scissors" style="font-size: 2rem; color: var(--accent-red);"></i>
+                <h3>Deletion Test</h3>
+                <p>If you delete a sentence and it still makes sense, keep it deleted.</p>
+            </div>
+            <div class="glass-card">
+                <i class="fa-solid fa-microscope" style="font-size: 2rem; color: var(--accent-green);"></i>
+                <h3>Specificity Test</h3>
+                <p>Replace vague words with data.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 21: RED FLAGS (Split Layout) -->
+    <div class="slide layout-split">
+        <div class="split-left stagger-in d-1" style="text-align: right;">
+            <h2 style="color: var(--accent-red); font-size: 4rem;">Red Flags</h2>
+            <p style="margin-left: auto;">If you see these, rewrite.</p>
+        </div>
+        <div class="split-right stagger-in d-2">
+            <div class="layout-grid" style="grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0;">
+                <div class="glass-card" style="border-left: 3px solid var(--accent-red); padding: 1.5rem;">
+                    <h3 style="font-size: 1rem;">Throat Clearing</h3>
+                    <p style="font-size: 0.9rem; margin-top: 0.5rem;">"I have always been..." <strong>Start late.</strong></p>
+                </div>
+                <div class="glass-card" style="border-left: 3px solid var(--accent-red); padding: 1.5rem;">
+                    <h3 style="font-size: 1rem;">Resume Re-hash</h3>
+                    <p style="font-size: 0.9rem; margin-top: 0.5rem;">"I utilized skills..." Write like a human.</p>
+                </div>
+                <div class="glass-card" style="border-left: 3px solid var(--accent-red); padding: 1.5rem;">
+                    <h3 style="font-size: 1rem;">Generic Praise</h3>
+                    <p style="font-size: 0.9rem; margin-top: 0.5rem;">"Your school is great..." Tell them why YOU fit.</p>
+                </div>
+                <div class="glass-card" style="border-left: 3px solid var(--accent-red); padding: 1.5rem;">
+                    <h3 style="font-size: 1rem;">The "Tell"</h3>
+                    <p style="font-size: 0.9rem; margin-top: 0.5rem;">"I am passionate." Prove it with action.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 22: FINAL CHECK -->
+    <div class="slide layout-hero">
+        <h2>Final Checklist</h2>
+        <div class="stagger-in d-2" style="width: 100%; max-width: 600px; background: var(--bg-card); border-radius: 8px; margin-top: 2rem;">
+            <div class="checklist-item" onclick="toggleCheck(this)"><div class="check-box"><i class="fa-solid fa-check check-icon"></i></div><span>Opening Hook</span></div>
+            <div class="checklist-item" onclick="toggleCheck(this)"><div class="check-box"><i class="fa-solid fa-check check-icon"></i></div><span>Voice (Sounds like me)</span></div>
+            <div class="checklist-item" onclick="toggleCheck(this)"><div class="check-box"><i class="fa-solid fa-check check-icon"></i></div><span>Show vs Tell</span></div>
+            <div class="checklist-item" onclick="toggleCheck(this)"><div class="check-box"><i class="fa-solid fa-check check-icon"></i></div><span>The "So What?" Insight</span></div>
+            <div class="checklist-item" onclick="toggleCheck(this)"><div class="check-box"><i class="fa-solid fa-check check-icon"></i></div><span>Word Count Check</span></div>
+        </div>
+    </div>
+
+    <!-- SLIDE 23: TROUBLESHOOTING (Full Content) -->
+    <div class="slide">
+        <h2>Troubleshooting HQ</h2>
+        <div class="layout-grid stagger-in d-1 scroll-area">
+            <div class="glass-card">
+                <h3>"I don't know what to write about."</h3>
+                <p>Pick a small moment. Cooking dinner, fixing a bike.</p>
+            </div>
+            <div class="glass-card">
+                <h3>"All my essays sound the same."</h3>
+                <p>Flip the script. Start with what <em>they</em> offer.</p>
+            </div>
+            <div class="glass-card">
+                <h3>"Should I write about trauma?"</h3>
+                <p>Only if you focus on the growth, not just the event.</p>
+            </div>
+            <div class="glass-card">
+                <h3>"Is this topic too small?"</h3>
+                <p>No such thing. Depth > Size.</p>
+            </div>
+            <div class="glass-card">
+                <h3>"Word count issues?"</h3>
+                <p>Over: Deletion Test. Under: "So What?" Test.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 24: END (Cinematic) -->
+    <div class="slide layout-hero cinematic-bg" 
+         style="background-image: url('https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1600&q=80'); background-color: rgba(0,48,87,0.85);">
+        <h1 class="display-text">Let's Write.</h1>
+        <p>"The hardest part isn't the writing. It's the honesty."</p>
+        <div style="margin-top: 4rem; opacity: 0.5; font-size: 0.8rem; letter-spacing: 0.2em;">GULLIVER PREP</div>
+    </div>
+
+    <!-- NAVIGATION -->
+    <div class="controls">
+        <div class="btn-nav" onclick="changeSlide(-1)"><i class="fa-solid fa-arrow-left"></i></div>
+        <div class="btn-nav" onclick="changeSlide(1)"><i class="fa-solid fa-arrow-right"></i></div>
+    </div>
+
+</div>
+
+<script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    const progressEl = document.getElementById('progress-bar');
+
+    function updateProgress() {
+        const percent = ((currentSlide + 1) / slides.length) * 100;
+        progressEl.style.width = percent + '%';
+    }
+
+    function changeSlide(dir) {
+        slides[currentSlide].classList.remove('active');
+        currentSlide = (currentSlide + dir + slides.length) % slides.length;
+        slides[currentSlide].classList.add('active');
+        updateProgress();
+    }
+
+    // Key nav
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight') changeSlide(1);
+        if (e.key === 'ArrowLeft') changeSlide(-1);
+    });
+
+    // Interaction: Checklist
+    function toggleCheck(el) {
+        el.classList.toggle('checked');
+    }
+
+    // Interaction: Litmus
+    function setLitmus(type) {
+        document.querySelectorAll('.litmus-opt').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.litmus-content').forEach(el => el.classList.remove('show'));
+        
+        event.target.classList.add('active');
+        document.getElementById('litmus-' + type).classList.add('show');
+    }
+
+    // Init
+    updateProgress();
+</script>
+
+</body>
+</html>
